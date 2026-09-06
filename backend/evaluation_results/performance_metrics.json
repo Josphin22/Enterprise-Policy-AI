@@ -1,0 +1,26 @@
+{
+  "retrieval": {
+    "mean_ms": 7.23,
+    "median_ms": 8.0,
+    "min_ms": 5.0,
+    "max_ms": 8.0,
+    "p95_ms": 8.0,
+    "count": 35
+  },
+  "llm_generation": {
+    "mean_ms": 8.91,
+    "median_ms": 12.0,
+    "min_ms": 0.0,
+    "max_ms": 12.0,
+    "p95_ms": 12.0,
+    "count": 35
+  },
+  "total_pipeline": {
+    "mean_ms": 16.14,
+    "median_ms": 20.0,
+    "min_ms": 5.0,
+    "max_ms": 20.0,
+    "p95_ms": 20.0,
+    "count": 35
+  }
+}

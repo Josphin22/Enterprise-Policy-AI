@@ -1,0 +1,122 @@
+[
+  {
+    "id": "q01",
+    "category": "direct",
+    "query": "How many annual leave days are allowed?",
+    "expected_document": "Leave_Policy.pdf",
+    "expected_keywords": ["15 days", "annual", "vacation"],
+    "expected_status": "success"
+  },
+  {
+    "id": "q02",
+    "category": "direct",
+    "query": "What is the paid sick leave entitlement?",
+    "expected_document": "Leave_Policy.pdf",
+    "expected_keywords": ["10 days", "sick leave"],
+    "expected_status": "success"
+  },
+  {
+    "id": "q03",
+    "category": "direct",
+    "query": "What are the core working hours for attendance?",
+    "expected_document": "Attendance_Policy.txt",
+    "expected_keywords": ["10:00 AM", "4:00 PM", "core hours"],
+    "expected_status": "success"
+  },
+  {
+    "id": "q04",
+    "category": "direct",
+    "query": "How many remote days are permitted per week under WFH policy?",
+    "expected_document": "Work_From_Home_Policy.docx",
+    "expected_keywords": ["2 days", "remote", "manager approval"],
+    "expected_status": "success"
+  },
+  {
+    "id": "q05",
+    "category": "paraphrased",
+    "query": "What is the yearly vacation allotment?",
+    "expected_document": "Leave_Policy.pdf",
+    "expected_keywords": ["15 days", "vacation"],
+    "expected_status": "success"
+  },
+  {
+    "id": "q06",
+    "category": "paraphrased",
+    "query": "How many days can an employee work from their home residence each week?",
+    "expected_document": "Work_From_Home_Policy.docx",
+    "expected_keywords": ["2 days", "remote"],
+    "expected_status": "success"
+  },
+  {
+    "id": "q07",
+    "category": "paraphrased",
+    "query": "What is the policy on carrying forward unused vacation days into next year?",
+    "expected_document": "Leave_Policy.pdf",
+    "expected_keywords": ["5 unused", "carry forward"],
+    "expected_status": "success"
+  },
+  {
+    "id": "q08",
+    "category": "paraphrased",
+    "query": "At what time must all employees be present in the office during standard shifts?",
+    "expected_document": "Attendance_Policy.txt",
+    "expected_keywords": ["10:00 AM", "4:00 PM"],
+    "expected_status": "success"
+  },
+  {
+    "id": "q09",
+    "category": "multi_document",
+    "query": "What are the company guidelines regarding leave requests and working from home eligibility?",
+    "expected_document": ["Leave_Policy.pdf", "Work_From_Home_Policy.docx"],
+    "expected_keywords": ["leave", "remote"],
+    "expected_status": "success"
+  },
+  {
+    "id": "q10",
+    "category": "multi_document",
+    "query": "Explain attendance core working hours and remote work frequency limitations.",
+    "expected_document": ["Attendance_Policy.txt", "Work_From_Home_Policy.docx"],
+    "expected_keywords": ["hours", "remote"],
+    "expected_status": "success"
+  },
+  {
+    "id": "q11",
+    "category": "irrelevant",
+    "query": "What is the population of Mars?",
+    "expected_document": null,
+    "expected_keywords": [],
+    "expected_status": "insufficient_context"
+  },
+  {
+    "id": "q12",
+    "category": "irrelevant",
+    "query": "How do I bake a chocolate cake with frosting?",
+    "expected_document": null,
+    "expected_keywords": [],
+    "expected_status": "insufficient_context"
+  },
+  {
+    "id": "q13",
+    "category": "irrelevant",
+    "query": "What is the capital city of France and its total area?",
+    "expected_document": null,
+    "expected_keywords": [],
+    "expected_status": "insufficient_context"
+  },
+  {
+    "id": "q14",
+    "category": "ambiguous",
+    "query": "What are the general rules and guidelines for staff working from home or taking leave?",
+    "expected_document": ["Leave_Policy.pdf", "Work_From_Home_Policy.docx"],
+    "expected_keywords": ["policy"],
+    "expected_status": "success"
+  },
+  {
+    "id": "q15",
+    "category": "ambiguous",
+    "query": "Tell me about allowances and benefits for team members regarding paid vacation and sick days.",
+    "expected_document": "Leave_Policy.pdf",
+    "expected_keywords": ["leave"],
+    "expected_status": "success"
+  }
+]

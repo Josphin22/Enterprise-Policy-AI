@@ -1,0 +1,7 @@
+ENTERPRISE IT SECURITY AND ACCESS CONTROL POLICY
+
+Section 1: Password Complexity and Expiration Standards
+All corporate user passwords must be at least 12 characters in length, containing uppercase letters, lowercase letters, numbers, and special symbols. Passwords must be changed every 90 days, and previous 5 passwords cannot be reused.
+
+Section 2: Device Encryption and USB Usage
+All employee laptops and workstations must have BitLocker full-disk encryption enabled. Unencrypted USB storage devices are strictly prohibited on enterprise hardware.

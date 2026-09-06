@@ -1,0 +1,16 @@
+{
+  "total_questions": 35,
+  "total_answerable": 22,
+  "total_unanswerable": 13,
+  "correct_answers": 18,
+  "answer_accuracy": 81.82,
+  "source_accuracy": 100.0,
+  "numerical_accuracy": 90.91,
+  "date_accuracy": 100.0,
+  "refusal_accuracy": 76.92,
+  "completeness_breakdown": {
+    "complete": 18,
+    "partially_correct": 3,
+    "incorrect": 1
+  }
+}

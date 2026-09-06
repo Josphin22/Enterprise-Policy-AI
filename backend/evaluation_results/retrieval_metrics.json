@@ -1,0 +1,14 @@
+{
+  "total_queries_evaluated": 35,
+  "answerable_queries": 22,
+  "hit_rate_1": 100.0,
+  "hit_rate_3": 100.0,
+  "hit_rate_5": 100.0,
+  "precision_1": 1.0,
+  "precision_3": 0.8788,
+  "precision_5": 0.6727,
+  "recall_1": 0.9318,
+  "recall_3": 1.0,
+  "recall_5": 1.0,
+  "context_relevance_score": 100.0
+}

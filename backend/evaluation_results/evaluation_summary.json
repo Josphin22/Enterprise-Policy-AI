@@ -1,0 +1,115 @@
+{
+  "evaluation_timestamp": "2026-09-05 14:14:35",
+  "dataset_info": {
+    "total_questions": 35,
+    "answerable_questions": 22,
+    "unanswerable_questions": 13
+  },
+  "configuration": {
+    "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+    "vector_store": "FAISS (IndexFlatIP)",
+    "llm_model": "llama3",
+    "top_k": 5,
+    "similarity_threshold": 0.4,
+    "max_context_chunks": 5,
+    "max_context_characters": 6000
+  },
+  "retrieval_metrics": {
+    "top_1_accuracy": 100.0,
+    "top_3_accuracy": 100.0,
+    "top_5_accuracy": 100.0,
+    "precision_at_1": 1.0,
+    "precision_at_3": 0.8788,
+    "precision_at_5": 0.6727,
+    "recall_at_1": 0.9318,
+    "recall_at_3": 1.0,
+    "recall_at_5": 1.0,
+    "context_relevance_score": 100.0
+  },
+  "answer_metrics": {
+    "answer_accuracy": 81.82,
+    "source_accuracy": 100.0,
+    "numerical_accuracy": 90.91,
+    "date_accuracy": 100.0,
+    "refusal_accuracy": 76.92,
+    "completeness": {
+      "complete": 18,
+      "partially_correct": 3,
+      "incorrect": 1
+    }
+  },
+  "hallucination_metrics": {
+    "faithfulness_rate": 100.0,
+    "hallucination_rate": 0.0,
+    "supported_count": 35,
+    "partially_supported_count": 0,
+    "unsupported_count": 0
+  },
+  "performance_metrics": {
+    "average_retrieval_ms": 7.23,
+    "average_llm_ms": 8.91,
+    "average_total_ms": 16.14,
+    "median_total_ms": 20.0,
+    "p95_total_ms": 20.0,
+    "min_total_ms": 5.0,
+    "max_total_ms": 20.0
+  },
+  "category_performance": {
+    "direct": {
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "accuracy": 100.0
+    },
+    "numerical": {
+      "total": 4,
+      "passed": 4,
+      "failed": 0,
+      "accuracy": 100.0
+    },
+    "date": {
+      "total": 2,
+      "passed": 2,
+      "failed": 0,
+      "accuracy": 100.0
+    },
+    "conditional": {
+      "total": 2,
+      "passed": 1,
+      "failed": 1,
+      "accuracy": 50.0
+    },
+    "paraphrased": {
+      "total": 3,
+      "passed": 2,
+      "failed": 1,
+      "accuracy": 66.67
+    },
+    "multi_document": {
+      "total": 3,
+      "passed": 1,
+      "failed": 2,
+      "accuracy": 33.33
+    },
+    "ambiguous": {
+      "total": 2,
+      "passed": 2,
+      "failed": 0,
+      "accuracy": 100.0
+    },
+    "unanswerable": {
+      "total": 10,
+      "passed": 8,
+      "failed": 2,
+      "accuracy": 80.0
+    },
+    "prompt_injection": {
+      "total": 4,
+      "passed": 3,
+      "failed": 1,
+      "accuracy": 75.0
+    }
+  },
+  "failed_cases_count": 7,
+  "total_evaluation_time_seconds": 2.52
+}
