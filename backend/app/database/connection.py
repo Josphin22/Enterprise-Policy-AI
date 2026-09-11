@@ -19,6 +19,33 @@ if settings.DATABASE_URL.startswith("sqlite"):
         pool_pre_ping=True,
     )
     logger.info(f"Database engine initialized using local SQLite: {settings.DATABASE_URL}")
+elif settings.DATABASE_URL.startswith("mysql"):
+    engine_kwargs = {
+        "pool_pre_ping": True,
+        "pool_size": 10,
+        "max_overflow": 20,
+        "pool_recycle": 1800,
+        "pool_timeout": 30,
+    }
+    try:
+        candidate_engine = create_engine(
+            settings.DATABASE_URL,
+            **engine_kwargs,
+        )
+        with candidate_engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        engine: Engine = candidate_engine
+        logger.info("Database engine initialized successfully using MySQL.")
+    except Exception as exc:
+        logger.warning(
+            f"Configured MySQL at '{settings.DATABASE_URL}' is unreachable ({exc}). "
+            f"Automatically falling back to local SQLite ({SQLITE_FALLBACK_URL}) for seamless operation."
+        )
+        engine: Engine = create_engine(
+            SQLITE_FALLBACK_URL,
+            connect_args={"check_same_thread": False},
+            pool_pre_ping=True,
+        )
 else:
     connect_args = {"connect_timeout": 2}
     engine_kwargs = {
@@ -40,7 +67,7 @@ else:
         logger.info("Database engine initialized successfully using PostgreSQL.")
     except Exception as exc:
         logger.warning(
-            f"Configured PostgreSQL at '{settings.DATABASE_URL}' is unreachable ({exc}). "
+            f"Configured database at '{settings.DATABASE_URL}' is unreachable ({exc}). "
             f"Automatically falling back to local SQLite ({SQLITE_FALLBACK_URL}) for seamless operation."
         )
         engine: Engine = create_engine(
