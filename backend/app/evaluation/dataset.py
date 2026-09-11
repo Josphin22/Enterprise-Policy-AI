@@ -6,19 +6,41 @@ from pydantic import BaseModel, Field
 
 logger = logging.getLogger("enterprise_rag.evaluation.dataset")
 
-DATASET_PATH = Path(__file__).resolve().parent.parent.parent / "tests" / "data" / "evaluation_dataset.json"
+DATASET_CANDIDATE_PATHS = [
+    Path(__file__).resolve().parent.parent.parent.parent / "evaluation" / "questions.json",
+    Path(__file__).resolve().parent.parent.parent / "evaluation" / "questions.json",
+    Path(__file__).resolve().parent.parent.parent / "tests" / "data" / "evaluation_dataset.json",
+]
+DATASET_PATH = next((p for p in DATASET_CANDIDATE_PATHS if p.exists()), DATASET_CANDIDATE_PATHS[-1])
+
+
+from typing import List, Optional, Any, Union
 
 
 class EvaluationQuestion(BaseModel):
-    id: str
+    id: Union[str, int]
     question: str
-    expected_answer: str
+    expected_answer: str = ""
     expected_sources: List[str] = Field(default_factory=list)
+    expected_document: Optional[str] = None
+    expected_chunk: Optional[str] = None
+    expected_chunk_index: Optional[int] = None
     expected_keywords: List[str] = Field(default_factory=list)
     expected_numbers: List[float] = Field(default_factory=list)
     expected_dates: List[str] = Field(default_factory=list)
     answerable: bool = True
     category: str = "direct"
+
+    def __init__(self, **data: Any):
+        if "expected_document" in data and data["expected_document"]:
+            doc = data["expected_document"]
+            sources = data.get("expected_sources", [])
+            if doc not in sources:
+                sources.append(doc)
+            data["expected_sources"] = sources
+        elif "expected_sources" in data and data["expected_sources"] and not data.get("expected_document"):
+            data["expected_document"] = data["expected_sources"][0]
+        super().__init__(**data)
 
 
 class EvaluationDataset:

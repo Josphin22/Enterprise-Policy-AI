@@ -280,59 +280,110 @@ Open [http://localhost:5173](http://localhost:5173) in your browser. Navigate to
 
 ---
 
-## Running Automated Tests & Benchmark Suites
+## Phase 6 — Real Ollama LLM + RAG Chatbot Integration
 
-Execute all **94 automated unit, integration, and benchmark tests**:
-```powershell
-pytest backend/tests -v
+Phase 6 connects the grounded RAG retrieval pipeline (Phases 1–5) to local inference with **Ollama** running `llama3.2:3b` (100% offline, zero cloud API fees):
+
+### 1. Prerequisites & Ollama Local Setup
+1. Download and install Ollama from [ollama.com](https://ollama.com).
+2. Pull the recommended local model:
+   ```bash
+   ollama pull llama3.2:3b
+   ```
+3. Verify running models:
+   ```bash
+   ollama list
+   ```
+4. Confirm Ollama daemon is active at `http://127.0.0.1:11434`:
+   ```bash
+   curl http://127.0.0.1:11434/api/tags
+   ```
+
+### 2. Environment Configuration (`backend/.env`)
+```ini
+# Ollama Local LLM Settings
+OLLAMA_BASE_URL=http://127.0.0.1:11434
+OLLAMA_MODEL=llama3.2:3b
+OLLAMA_TEMPERATURE=0.1
+OLLAMA_TOP_P=0.9
+OLLAMA_NUM_CTX=4096
+OLLAMA_MAX_TOKENS=1000
+OLLAMA_TIMEOUT_SECONDS=60.0
+
+# RAG & Auto-Reindexing Settings
+SIMILARITY_THRESHOLD=0.35
+RETRIEVAL_TOP_K=5
+AUTO_REINDEX=true
 ```
 
-The test suite evaluates:
-- **Evaluation Engine** (`test_evaluation.py`): Dataset loader, Precision@K, Recall@K, Answer correctness, Hallucination classifier, Performance profiler, Health probe.
-- **LLM Unit Tests** (`test_llm.py`): Offline error handling, model availability, prompt injection defense, fake citation filtering.
-- **End-to-End RAG QA Benchmark** (`test_rag_e2e.py`): 20-question evaluation dataset (`qa_dataset.json`) measuring answer accuracy, source citation accuracy, and irrelevant query refusal.
-- **RAG Retrieval Engine** (`test_retrieval.py`): Top-K search, precision/recall, and adjacent chunk expansion.
-- **Embeddings & FAISS** (`test_rag.py`): Vector store lifecycle, IndexFlatIP similarity ranking, reindexing.
-- **Document Processing** (`test_document_processing.py`): PDF/DOCX/TXT loaders, cleaning, recursive chunking.
-- **Database & API** (`test_api.py`, `test_database.py`, `test_health.py`): PostgreSQL persistence, sessions, feedback.
+### 3. Key Phase 6 Features Implemented
+- **Deterministic Safe Refusal**: When retrieved chunks fall below the similarity threshold (0.35), the chatbot immediately returns:
+  `"I couldn't find that information in the uploaded documents."` without calling the LLM.
+- **Untrusted Context Delimitation**: Retrieved text is fenced between `===== BEGIN DOCUMENT CONTEXT =====` and `===== END DOCUMENT CONTEXT =====` as untrusted reference data to defend against document prompt injection.
+- **Source Citation Integrity**: All citations (`[Source 1]`, `[S1]`) are verified by `ResponseParser`. Hallucinated or non-existent citations (e.g. `[Source 999]`) are automatically detected and purged.
+- **Document Scoping Filter**: Users can filter queries to a specific uploaded document (`document_id`).
+- **Conversational Context Rewriting**: Multi-turn chat sessions contextualize brief follow-up queries ("Can I carry it over?") against prior conversation turns.
+- **Automatic Background Re-indexing**: Vector store is dynamically rebuilt in the background whenever documents are processed (`AUTO_REINDEX=true`).
 
 ---
 
-## Phase 11 — Final Project Verification & Report Evidence
+## Running Automated Tests & Benchmark Suites
 
-All 11 phases of the project have been systematically verified and documented:
+Execute all **244 automated unit, integration, grounding, injection, security, and benchmark tests**:
+```powershell
+& "$env:LOCALAPPDATA\Python\pythoncore-3.14-64\python.exe" -m pytest tests/ -q
+```
+
+The test suite evaluates:
+- **Phase 1 Foundation & Database** (`test_phase1_foundation.py`, `test_database.py`, `test_health.py`): PostgreSQL / SQLite engines, connection pools, migrations.
+- **Phase 2 Document Upload & Extraction** (`test_phase2_upload_extraction.py`): PDF, DOCX, TXT loaders, sanitization, validation.
+- **Phase 3 Chunking & Metadata** (`test_phase3_chunking.py`): Recursive chunking, boundary preservation, overlap validation.
+- **Phase 4 Vector Knowledge Base** (`test_phase4_vector_kb.py`): FAISS IndexFlatIP, dense SentenceTransformer embeddings.
+- **Phase 5 RAG Pipeline** (`test_phase5_rag_pipeline.py`): Query embedding, FAISS search, context bounding, source mapping.
+- **Phase 6 Local LLM & Ollama Service** (`test_llm.py`, `test_ollama.py`): Daemon reachability, model check, health checks, offline fallback.
+- **Phase 7 Enterprise RAG & Chat** (`test_phase7_enterprise_rag.py`, `test_chat.py`, `test_api.py`): Multi-turn session memory, follow-up rewriting, rate limiting.
+- **Phase 8 Enterprise Admin & Diagnostics** (`test_phase8_enterprise_admin.py`): Role management, system health, audit log streams.
+- **Phase 9 Hybrid Retrieval & Reranking** (`test_phase9_hybrid_retrieval.py`): BM25 + dense vector fusion, reciprocal rank fusion (RRF).
+- **Phase 10 Advanced Document Intelligence & OCR** (`test_phase10_document_intelligence.py`): Scanned PDF OCR fallback, tables, headers, metadata.
+- **Phase 11 Enterprise Security & RBAC** (`test_phase11_security_rbac.py`): USER/MANAGER/ADMIN access control, document permissions.
+- **Phase 12 Guardrails & Hallucination Defense** (`test_phase12_guardrails.py`, `test_grounding.py`, `test_prompt_injection.py`): Anti-injection quarantine, safe refusal below 0.35 similarity.
+- **End-to-End Scientific Evaluation** (`test_rag_e2e.py`, `test_retrieval.py`, `test_evaluation.py`): Groundedness, Recall@K, Hit Rate.
+
+---
+
+## Phase 16 — Final Project Verification & Release Evidence
+
+All 16 phases of the project have been systematically verified and documented:
 
 ```text
 ==================================================
-              FINAL PROJECT STATUS
+        ENTERPRISE POLICY AI — RELEASE STATUS
 ==================================================
-Frontend:               PASS (React 18 + Vite)
-Backend:                PASS (FastAPI + Async ASGI)
-Database:               PASS (PostgreSQL / SQLite ORM)
-Document Processing:    PASS (PDF/DOCX/TXT Multi-format)
-Embeddings:             PASS (SentenceTransformers 384d)
-FAISS:                  PASS (IndexFlatIP Cosine Retrieval)
-RAG:                    PASS (Thresholded Top-K Context)
-Ollama:                 PASS (llama3.2:3b Local LLM)
-Source Citation:        PASS (100% Verified Citations)
-Authentication:         PASS (JWT + PBKDF2/Bcrypt)
-Authorization:          PASS (Role-based USER/ADMIN)
-Evaluation:             PASS (35-Query Scientific Benchmark)
-Security Tests:         PASS (Prompt & Document Injection Safe)
-Docker:                 PASS (docker-compose.yml Validated)
-End-to-End Test:        PASS (94/94 Pytest Tests Passing)
+Frontend:               PASS (React 19 + Vite, 335ms build)
+Backend:                PASS (FastAPI + Async ASGI, Python 3.14)
+Database:               PASS (PostgreSQL 16 + SQLite Fallback)
+Document Processing:    PASS (PDF/DOCX/TXT + OCR Support)
+Embeddings:             PASS (SentenceTransformers all-MiniLM-L6-v2, 384d)
+FAISS:                  PASS (IndexFlatIP Exact Cosine Retrieval)
+Hybrid Search:          PASS (Dense Vector + BM25 Keyword Fusion)
+RAG Pipeline:           PASS (Grounded Thresholded Top-K Context)
+Ollama Inference:       PASS (llama3.2:3b 100% Local Inference)
+Source Citations:       PASS (100% Verifiable & Clickable Excerpts)
+Security & RBAC:        PASS (JWT, Role Enforcement, Safe Sanitization)
+Audit Logging:          PASS (Immutable Compliance Event Trail)
+Evaluation Suite:       PASS (35-Query Scientific Benchmark)
+Automated Tests:        PASS (244/244 Pytest Tests Passing)
+Release Version:        1.0.0 (Production Ready)
 ==================================================
 ```
 
-### Comprehensive Project Report Artifacts
+### Complete Project Documentation Directory
+- **Architecture**: [`docs/ARCHITECTURE.md`](file:///e:/GEN%20AI/docs/ARCHITECTURE.md)
+- **API Reference**: [`docs/API.md`](file:///e:/GEN%20AI/docs/API.md)
+- **User Guide**: [`docs/USER_GUIDE.md`](file:///e:/GEN%20AI/docs/USER_GUIDE.md)
+- **Administrator Guide**: [`docs/ADMIN_GUIDE.md`](file:///e:/GEN%20AI/docs/ADMIN_GUIDE.md)
+- **Troubleshooting Guide**: [`docs/TROUBLESHOOTING.md`](file:///e:/GEN%20AI/docs/TROUBLESHOOTING.md)
+- **Deployment & Docker Guide**: [`docs/DEPLOYMENT_GUIDE.md`](file:///e:/GEN%20AI/docs/DEPLOYMENT_GUIDE.md)
 
-The final project report and evidence files are located in `docs/project-report/`:
-- **Final Folder Structure**: [`docs/project-report/final-folder-structure.md`](file:///e:/GEN%20AI/docs/project-report/final-folder-structure.md)
-- **Empirical Metrics**: [`docs/project-report/final-metrics.md`](file:///e:/GEN%20AI/docs/project-report/final-metrics.md)
-- **Complete Test Matrix**: [`docs/project-report/test-summary.md`](file:///e:/GEN%20AI/docs/project-report/test-summary.md)
-- **Demonstration Flow**: [`docs/project-report/demo-script.md`](file:///e:/GEN%20AI/docs/project-report/demo-script.md)
-- **30 Viva Questions & Answers**: [`docs/project-report/viva-questions.md`](file:///e:/GEN%20AI/docs/project-report/viva-questions.md)
-- **35-Section Final Project Report**: [`docs/project-report/report-content.md`](file:///e:/GEN%20AI/docs/project-report/report-content.md)
-- **Screenshot Capture Guide**: [`docs/project-report/screenshots/screenshot-guide.md`](file:///e:/GEN%20AI/docs/project-report/screenshots/screenshot-guide.md)
 
 

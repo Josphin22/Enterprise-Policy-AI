@@ -158,7 +158,7 @@ def test_llm_service_get_status_offline():
     """Verify service returns clean status when Ollama daemon is offline."""
     service = LLMService(client=OllamaClient(base_url="http://127.0.0.1:9999"))
     status_info = service.get_status()
-    assert status_info["provider"] == "Ollama"
+    assert status_info["provider"].lower() == "ollama"
     assert status_info["status"] == "llm_unavailable"
 
 
@@ -167,7 +167,7 @@ def test_api_llm_status_endpoint(test_client):
     resp = test_client.get("/api/llm/status")
     assert resp.status_code == 200
     data = resp.json()
-    assert data["provider"] == "Ollama"
+    assert data["provider"].lower() == "ollama"
     assert data["status"] in ["available", "llm_unavailable", "model_not_found"]
     assert "model" in data
 

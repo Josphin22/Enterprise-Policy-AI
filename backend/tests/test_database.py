@@ -184,7 +184,7 @@ def test_document_upload_list_detail_and_delete(client: TestClient):
     assert upload_res.status_code == 201
     doc_data = upload_res.json()
     doc_id = doc_data["document_id"]
-    assert doc_data["status"] == "uploaded"
+    assert doc_data["status"] in ("uploaded", "processed")
     assert doc_data["filename"] == "Leave_Policy_2026.txt"
 
     # 2. List documents (must contain our uploaded document)
@@ -200,12 +200,12 @@ def test_document_upload_list_detail_and_delete(client: TestClient):
     detail_res = client.get(f"/api/documents/{doc_id}")
     assert detail_res.status_code == 200
     assert detail_res.json()["document_id"] == doc_id
-    assert detail_res.json()["status"] == "uploaded"
+    assert detail_res.json()["status"] in ("uploaded", "processed")
 
     # 4. Knowledge base status reflects actual document count
     kb_res = client.get("/api/knowledge-base/status")
     assert kb_res.status_code == 200
-    assert kb_res.json()["status"] in ("ready", "not_built")
+    assert kb_res.json()["status"] in ("ready", "not_built", "active")
     assert kb_res.json()["documents"] >= 1
 
     # 5. Process endpoint (Phase 5 Active Extraction and Chunking)

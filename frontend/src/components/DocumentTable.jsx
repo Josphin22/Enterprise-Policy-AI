@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { FileText, Trash2, RefreshCw, Play, Inbox, Loader2, Layers, Eye } from 'lucide-react';
 import { deleteDocument, processDocument } from '../services/api';
 import ChunkInspectorModal from './ChunkInspectorModal';
+import DocumentPreviewModal from './DocumentPreviewModal';
 
 export default function DocumentTable({ documents = [], onRefresh, isLoading = false }) {
   const [deletingId, setDeletingId] = useState(null);
   const [processingId, setProcessingId] = useState(null);
   const [inspectingDoc, setInspectingDoc] = useState(null);
+  const [previewingDoc, setPreviewingDoc] = useState(null);
   const [actionMessage, setActionMessage] = useState('');
 
   const formatFileSize = (bytes) => {
@@ -91,13 +93,13 @@ export default function DocumentTable({ documents = [], onRefresh, isLoading = f
       )}
 
       {documents.length === 0 ? (
-        <div className="empty-state-card">
+        <div className="empty-state-card" role="status" aria-label="No documents">
           <div className="empty-state-icon">
             <Inbox size={36} />
           </div>
-          <h4 className="empty-state-title">No documents uploaded yet.</h4>
+          <h4 className="empty-state-title">No policy documents in repository</h4>
           <p className="empty-state-desc">
-            Upload enterprise policy documents above to store and chunk them in the local repository.
+            Upload a policy document to start asking questions.
           </p>
         </div>
       ) : (
@@ -145,6 +147,10 @@ export default function DocumentTable({ documents = [], onRefresh, isLoading = f
                         >
                           <Layers size={12} /> {doc.chunk_count} chunks
                         </button>
+                      ) : doc.status === 'processing' ? (
+                        <span style={{ fontSize: '0.78rem', color: 'var(--accent-cyan)' }}>Processing...</span>
+                      ) : doc.status === 'failed' ? (
+                        <span style={{ fontSize: '0.78rem', color: '#f87171' }}>Failed</span>
                       ) : (
                         <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>0</span>
                       )}
@@ -155,11 +161,21 @@ export default function DocumentTable({ documents = [], onRefresh, isLoading = f
                         <button
                           type="button"
                           className="btn-action-icon"
-                          onClick={() => setInspectingDoc(doc)}
-                          title="View Details & Extracted Chunks"
-                          aria-label="View document details"
+                          onClick={() => setPreviewingDoc(doc)}
+                          title="Preview Extracted Document Content (Pages, Sections, Tables)"
+                          aria-label="Preview document content"
                         >
                           <Eye size={14} />
+                        </button>
+
+                        <button
+                          type="button"
+                          className="btn-action-icon"
+                          onClick={() => setInspectingDoc(doc)}
+                          title="Inspect Extracted Chunks"
+                          aria-label="Inspect chunks"
+                        >
+                          <Layers size={14} />
                         </button>
 
                         <button
@@ -192,6 +208,13 @@ export default function DocumentTable({ documents = [], onRefresh, isLoading = f
           </table>
         </div>
       )}
+
+      {/* Document Content Preview Modal */}
+      <DocumentPreviewModal
+        document={previewingDoc}
+        isOpen={Boolean(previewingDoc)}
+        onClose={() => setPreviewingDoc(null)}
+      />
 
       {/* Chunks Inspector Modal */}
       <ChunkInspectorModal

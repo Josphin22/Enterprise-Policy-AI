@@ -3,8 +3,11 @@ from pydantic import BaseModel, Field
 
 
 class HealthResponse(BaseModel):
-    status: str = Field(..., examples=["healthy"])
-    service: str = Field(..., examples=["Enterprise Policy RAG"])
+    status: str = Field(..., examples=["healthy", "degraded"])
+    database: str = Field(..., examples=["connected", "unreachable"])
+    faiss: str = Field(..., examples=["ready", "not_built"])
+    ollama: str = Field(..., examples=["available", "unavailable"])
+    service: str = Field("Enterprise Policy RAG", examples=["Enterprise Policy RAG"])
 
 
 class ComponentStatus(BaseModel):
@@ -24,13 +27,17 @@ class SystemStatusResponse(BaseModel):
 
 
 class KnowledgeBaseStatusResponse(BaseModel):
-    status: str = Field("not_built", examples=["ready", "not_built"])
+    status: str = Field("not_built", examples=["active", "ready", "not_built"])
     documents: int = Field(0, description="Total ingested documents")
     processed_documents: int = Field(0, description="Total processed documents with extracted chunks")
     chunks: int = Field(0, description="Total extracted text chunks")
     vectors: int = Field(0, description="Total indexed vectors in FAISS")
-    embedding_model: str = Field("all-MiniLM-L6-v2", examples=["all-MiniLM-L6-v2"])
+    dimension: int = Field(384, examples=[384], description="Embedding vector dimension")
+    embedding_model: str = Field("sentence-transformers/all-MiniLM-L6-v2", examples=["sentence-transformers/all-MiniLM-L6-v2"])
     embedding_dimension: int = Field(384, examples=[384])
+    index_type: str = Field("IndexFlatIP", examples=["IndexFlatIP"])
+    index_path: Optional[str] = Field(None, examples=["backend/vectorstore/index.faiss"])
+    metadata_path: Optional[str] = Field(None, examples=["backend/vectorstore/metadata.json"])
     vector_database: str = Field("FAISS", examples=["FAISS"])
     rag_status: str = Field("not_ready", examples=["retrieval_ready", "not_ready"])
     last_built: Optional[str] = Field(None, examples=["2026-09-03T12:00:00Z"])
@@ -38,11 +45,12 @@ class KnowledgeBaseStatusResponse(BaseModel):
 
 class KnowledgeBaseBuildResponse(BaseModel):
     success: bool = Field(True, examples=[True])
-    status: str = Field("built", examples=["built", "no_processed_chunks"])
+    status: str = Field("success", examples=["success", "built", "empty", "in_progress"])
     documents: int = Field(0, examples=[3])
     chunks: int = Field(0, examples=[125])
     vectors: int = Field(0, examples=[125])
-    embedding_model: Optional[str] = Field(None, examples=["all-MiniLM-L6-v2"])
+    dimension: Optional[int] = Field(384, examples=[384])
+    embedding_model: Optional[str] = Field(None, examples=["sentence-transformers/all-MiniLM-L6-v2"])
     embedding_dimension: Optional[int] = Field(None, examples=[384])
     message: str = Field(..., examples=["Successfully built FAISS index."])
 
@@ -50,13 +58,16 @@ class KnowledgeBaseBuildResponse(BaseModel):
 class KnowledgeBaseSearchRequest(BaseModel):
     query: str = Field(..., min_length=1, examples=["How many annual leave days are allowed?"])
     top_k: int = Field(5, ge=1, le=50, examples=[5])
+    min_score: Optional[float] = Field(0.35, ge=0.0, le=1.0, description="Minimum cosine similarity threshold")
 
 
 class SearchResultItem(BaseModel):
     chunk_id: Optional[str] = Field(None, examples=["1198c603-51bf-4e08-ba90-57169f417537"])
     document_id: Optional[str] = Field(None, examples=["8f3b1e22-c104-4530-bf64-ec3b80b7e923"])
     filename: Optional[str] = Field(None, examples=["Leave_Policy.pdf"])
+    chunk_index: Optional[int] = Field(None, examples=[0])
     page: Optional[int] = Field(None, examples=[1])
+    page_number: Optional[int] = Field(None, examples=[1])
     section: Optional[str] = Field(None, examples=["Annual Vacation Leave"])
     text: str = Field(..., examples=["Employees are entitled to 15 days of annual paid vacation leave..."])
     score: float = Field(..., examples=[0.8754])

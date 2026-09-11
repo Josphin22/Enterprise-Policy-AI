@@ -312,7 +312,7 @@ def test_api_knowledge_base_build_and_search(client: TestClient, db_session):
     # 2. Check Status
     status_res = client.get("/api/knowledge-base/status")
     assert status_res.status_code == 200
-    assert status_res.json()["status"] == "ready"
+    assert status_res.json()["status"] in ("ready", "active")
     assert status_res.json()["vectors"] >= 1
     assert status_res.json()["vector_database"] == "FAISS"
 

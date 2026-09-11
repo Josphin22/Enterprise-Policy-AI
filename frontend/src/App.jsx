@@ -6,11 +6,12 @@ import Assistant from './pages/Assistant';
 import ChatHistory from './pages/ChatHistory';
 import KnowledgeBase from './pages/KnowledgeBase';
 import Evaluation from './pages/Evaluation';
+import AdminDashboard from './pages/AdminDashboard';
 import Settings from './pages/Settings';
 import { getHealthStatus } from './services/api';
 
 export default function App() {
-  const [activePage, setActivePage] = useState('dashboard');
+  const [activePage, setActivePage] = useState('assistant');
   const [healthState, setHealthState] = useState({
     isConnected: false,
     isChecking: true,
@@ -58,6 +59,8 @@ export default function App() {
         return <KnowledgeBase />;
       case 'evaluation':
         return <Evaluation />;
+      case 'admin':
+        return <AdminDashboard onNavigate={setActivePage} />;
       case 'settings':
         return <Settings />;
       default:

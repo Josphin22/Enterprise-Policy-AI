@@ -121,8 +121,31 @@ class ContextBuilder:
         if self.include_adjacent and db:
             unique_chunks = self.expand_adjacent_chunks(unique_chunks, db)
 
-        # 3. Apply chunk count limit
-        selected_chunks = unique_chunks[:limit_chunks]
+        # 3. Apply chunk count limit with source diversity balancing
+        if len(unique_chunks) > limit_chunks:
+            doc_ids = [c.document_id for c in unique_chunks if c.document_id]
+            distinct_docs = list(dict.fromkeys(doc_ids))
+            if len(distinct_docs) > 1:
+                selected_chunks: List[CandidateChunk] = []
+                seen_chunk_ids: Set[str] = set()
+                # Pick top chunk from each distinct document
+                for d_id in distinct_docs:
+                    top_doc_chunk = next((c for c in unique_chunks if c.document_id == d_id), None)
+                    if top_doc_chunk and top_doc_chunk.chunk_id not in seen_chunk_ids:
+                        selected_chunks.append(top_doc_chunk)
+                        seen_chunk_ids.add(top_doc_chunk.chunk_id)
+                # Fill remaining slots by relevance score
+                for c in unique_chunks:
+                    if len(selected_chunks) >= limit_chunks:
+                        break
+                    if c.chunk_id not in seen_chunk_ids:
+                        selected_chunks.append(c)
+                        seen_chunk_ids.add(c.chunk_id)
+                selected_chunks.sort(key=lambda x: x.score, reverse=True)
+            else:
+                selected_chunks = unique_chunks[:limit_chunks]
+        else:
+            selected_chunks = unique_chunks[:limit_chunks]
 
         # 4. Construct formatted context and citation mapping respecting character limit
         context_blocks: List[str] = []
@@ -132,11 +155,14 @@ class ContextBuilder:
         for idx, chunk in enumerate(selected_chunks):
             source_id = f"S{idx + 1}"
 
-            # Format source header
+            # Format source header:
+            # [Source S1]
             header_lines = [f"[Source {source_id}]"]
             header_lines.append(f"Document: {chunk.filename}")
             if chunk.page is not None:
                 header_lines.append(f"Page: {chunk.page}")
+            if chunk.chunk_index is not None:
+                header_lines.append(f"Chunk: {chunk.chunk_index}")
             if chunk.section:
                 header_lines.append(f"Section: {chunk.section}")
 
@@ -152,14 +178,25 @@ class ContextBuilder:
             context_blocks.append(block)
             current_char_count += len(block)
 
+            clean_preview = chunk.text.strip()
+            if len(clean_preview) > 250:
+                clean_preview = clean_preview[:250].strip() + "..."
+
             sources.append(
                 SourceCitation(
                     source_id=source_id,
                     document=chunk.filename,
+                    filename=chunk.filename,
+                    document_id=chunk.document_id,
                     page=chunk.page,
+                    page_number=chunk.page,
+                    chunk_index=chunk.chunk_index,
                     section=chunk.section,
                     chunk_id=chunk.chunk_id,
                     score=round(chunk.score, 4),
+                    chunk_text=chunk.text.strip(),
+                    text=chunk.text.strip(),
+                    preview=clean_preview,
                 )
             )
 

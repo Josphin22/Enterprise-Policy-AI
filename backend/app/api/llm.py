@@ -19,10 +19,12 @@ async def get_llm_status():
     """
     status_data = llm_service.get_status()
     return LLMStatusResponse(
-        provider=status_data["provider"],
-        status=status_data["status"],
+        provider=status_data.get("provider", "ollama"),
+        endpoint=status_data.get("endpoint", "http://127.0.0.1:11434"),
         model=status_data["model"],
-        base_url=status_data["base_url"],
+        available=status_data.get("available", False),
+        status=status_data["status"],
+        base_url=status_data.get("base_url", "http://127.0.0.1:11434"),
         installed_models=status_data.get("installed_models", []),
         message=status_data.get("message"),
     )

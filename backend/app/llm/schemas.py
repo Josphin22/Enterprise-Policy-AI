@@ -3,12 +3,14 @@ from pydantic import BaseModel, Field
 
 
 class LLMStatusResponse(BaseModel):
-    provider: str = Field("Ollama", examples=["Ollama"])
-    status: str = Field(..., examples=["available", "llm_unavailable", "model_not_found"])
+    provider: str = Field("ollama", examples=["ollama"])
+    endpoint: str = Field("http://127.0.0.1:11434", examples=["http://127.0.0.1:11434"])
     model: str = Field(..., examples=["llama3.2:3b"])
-    base_url: str = Field("local", examples=["local"])
+    available: bool = Field(..., examples=[True, False])
+    status: str = Field(..., examples=["available", "llm_unavailable", "model_not_found"])
+    base_url: str = Field("http://127.0.0.1:11434", examples=["http://127.0.0.1:11434"])
     installed_models: List[str] = Field(default_factory=list)
-    message: Optional[str] = Field(None, examples=["Local Ollama service operational."])
+    message: Optional[str] = Field(None, examples=["Local model 'llama3.2:3b' is ready for inference."])
 
 
 class LLMGenerateRequest(BaseModel):

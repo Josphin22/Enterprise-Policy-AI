@@ -113,7 +113,7 @@ class SystemService:
 
         # Ensure FAISS index is loaded if available
         if not vector_store.is_built:
-            vector_store.load_index()
+            vector_store.load()
 
         kb_is_ready = vector_store.is_built and vector_store.total_vectors > 0
         dim = vector_store.index.d if vector_store.index is not None else 384
@@ -124,8 +124,12 @@ class SystemService:
             processed_documents=processed_docs,
             chunks=total_chunks,
             vectors=vector_store.total_vectors,
-            embedding_model=settings.EMBEDDING_MODEL_NAME,
+            dimension=dim,
+            embedding_model=settings.EMBEDDING_MODEL,
             embedding_dimension=dim,
+            index_type="IndexFlatIP",
+            index_path=(settings.VECTORSTORE_DIR / "index.faiss").as_posix(),
+            metadata_path=(settings.VECTORSTORE_DIR / "metadata.json").as_posix(),
             vector_database="FAISS",
             rag_status="retrieval_ready" if kb_is_ready else "not_ready",
             last_built=vector_store.index_info.get("updated_at"),

@@ -122,6 +122,8 @@ class OllamaClient:
             "temperature": temperature if temperature is not None else settings.OLLAMA_TEMPERATURE,
             "top_p": top_p if top_p is not None else settings.OLLAMA_TOP_P,
             "num_ctx": num_ctx if num_ctx is not None else settings.OLLAMA_NUM_CTX,
+            "num_predict": settings.OLLAMA_MAX_TOKENS,
+            "repeat_penalty": 1.18,
         }
 
         payload: Dict[str, Any] = {

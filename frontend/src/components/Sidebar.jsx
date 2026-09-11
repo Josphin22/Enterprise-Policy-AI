@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, 
   Files, 
@@ -8,18 +8,18 @@ import {
   BarChart3, 
   Settings, 
   ShieldCheck,
+  Shield,
+  Lock,
   X,
-  Sparkles
+  Sparkles,
+  User
 } from 'lucide-react';
+import { getStoredUser } from '../services/api';
 
 const NAV_ITEMS = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'documents', label: 'Documents', icon: Files },
   { id: 'assistant', label: 'AI Assistant', icon: Bot },
+  { id: 'documents', label: 'Documents', icon: Files },
   { id: 'history', label: 'Chat History', icon: History },
-  { id: 'knowledge', label: 'Knowledge Base', icon: Database },
-  { id: 'evaluation', label: 'Evaluation', icon: BarChart3 },
-  { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
 export default function Sidebar({ 
@@ -28,6 +28,14 @@ export default function Sidebar({
   isOpen = false, 
   onCloseMobile 
 }) {
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    setCurrentUser(getStoredUser());
+  }, [activePage]);
+
+  const isAdmin = currentUser?.role === 'ADMIN';
+
   return (
     <>
       {/* Mobile Backdrop Overlay */}
@@ -39,7 +47,7 @@ export default function Sidebar({
         />
       )}
 
-      <aside className={`app-sidebar ${isOpen ? 'open' : ''}`}>
+      <aside className={`app-sidebar ${isOpen ? 'open' : ''}`} aria-label="Enterprise Navigation">
         {/* Sidebar Header / Branding */}
         <div className="sidebar-brand-box">
           <div className="sidebar-brand-content">
@@ -72,6 +80,7 @@ export default function Sidebar({
             {NAV_ITEMS.map((item) => {
               const Icon = item.icon;
               const isActive = activePage === item.id;
+              
               return (
                 <li key={item.id} className="nav-item">
                   <button
@@ -82,9 +91,18 @@ export default function Sidebar({
                       if (onCloseMobile) onCloseMobile();
                     }}
                     aria-current={isActive ? 'page' : undefined}
+                    aria-label={`Navigate to ${item.label}`}
                   >
                     <Icon size={19} className="nav-icon" />
                     <span className="nav-label">{item.label}</span>
+                    {item.adminOnly && (
+                      <span 
+                        className={`sidebar-role-tag ${isAdmin ? 'role-admin' : 'role-locked'}`} 
+                        title={isAdmin ? "Full Admin Access" : "Admin Authentication Required"}
+                      >
+                        {isAdmin ? 'ADMIN' : 'RBAC'}
+                      </span>
+                    )}
                     {isActive && <span className="nav-active-pip" />}
                   </button>
                 </li>
@@ -93,15 +111,14 @@ export default function Sidebar({
           </ul>
         </nav>
 
-        {/* Sidebar Footer Info */}
+        {/* Sidebar Footer User / Phase Tag */}
         <div className="sidebar-footer-card">
-          <div className="footer-phase-tag">
-            <Sparkles size={13} />
-            <span>Phase 2: UI Foundation</span>
+          <div className="sidebar-user-pill">
+            <User size={13} className="text-cyan" />
+            <span className="sidebar-user-name">
+              {currentUser ? currentUser.email : 'Policy User'}
+            </span>
           </div>
-          <p className="footer-copyright-text">
-            Enterprise RAG Platform &bull; v0.2.0
-          </p>
         </div>
       </aside>
     </>

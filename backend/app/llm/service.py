@@ -2,7 +2,6 @@ import logging
 from typing import Optional, List, Dict, Any
 
 from app.config import settings
-from app.rag.schemas import SourceCitation
 from app.llm.ollama_client import ollama_client, OllamaClient
 from app.llm.prompt_builder import prompt_builder, PromptBuilder
 from app.llm.response_parser import response_parser, ResponseParser
@@ -34,6 +33,8 @@ class LLMService:
         installed_models = self.client.list_models() if is_connected else []
         is_model_ready = self.client.check_model_available(settings.OLLAMA_MODEL) if is_connected else False
 
+        is_available = is_connected and is_model_ready
+
         if not is_connected:
             status = "llm_unavailable"
             message = f"Local Ollama daemon unreachable at {settings.OLLAMA_BASE_URL}."
@@ -45,10 +46,12 @@ class LLMService:
             message = f"Local model '{settings.OLLAMA_MODEL}' is ready for inference."
 
         return {
-            "provider": "Ollama",
-            "status": status,
+            "provider": "ollama",
+            "endpoint": settings.OLLAMA_BASE_URL,
             "model": settings.OLLAMA_MODEL,
-            "base_url": "local",
+            "available": is_available,
+            "status": status,
+            "base_url": settings.OLLAMA_BASE_URL,
             "installed_models": installed_models,
             "message": message,
         }
@@ -57,9 +60,10 @@ class LLMService:
         self,
         query: str,
         context: str,
-        sources: List[SourceCitation],
+        sources: List[Any],
         model: Optional[str] = None,
         temperature: Optional[float] = None,
+        language: Optional[str] = "en",
     ) -> Dict[str, Any]:
         """
         Builds grounded RAG prompt, invokes local Ollama LLM, validates answer,
@@ -68,6 +72,7 @@ class LLMService:
         system_prompt, user_prompt = self.prompt_builder.build_rag_prompt(
             query=query,
             context=context,
+            language=language,
         )
 
         gen_result = self.client.generate(

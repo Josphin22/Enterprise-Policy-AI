@@ -4,6 +4,7 @@ from typing import List, Optional
 from sqlalchemy import String, Text, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database.base import Base
+from app.models.feedback import Feedback
 
 
 class ChatSession(Base):
@@ -39,6 +40,7 @@ class ChatSession(Base):
         default=lambda: datetime.datetime.now(datetime.timezone.utc),
         onupdate=lambda: datetime.datetime.now(datetime.timezone.utc),
         nullable=False,
+        index=True,
     )
 
     # Relationships
@@ -84,6 +86,14 @@ class ChatMessage(Base):
     content: Mapped[str] = mapped_column(
         Text,
         nullable=False,
+    )
+    sources_json: Mapped[Optional[str]] = mapped_column(
+        Text,
+        nullable=True,
+    )
+    retrieval_metadata_json: Mapped[Optional[str]] = mapped_column(
+        Text,
+        nullable=True,
     )
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True),

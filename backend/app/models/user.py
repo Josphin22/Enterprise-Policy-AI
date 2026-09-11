@@ -40,6 +40,12 @@ class User(Base):
         default=True,
         nullable=False,
     )
+    role: Mapped[str] = mapped_column(
+        String(20),
+        default="USER",
+        nullable=False,
+        index=True,
+    )
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.datetime.now(datetime.timezone.utc),

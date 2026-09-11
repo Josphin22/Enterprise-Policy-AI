@@ -43,9 +43,11 @@ class RAGRetriever:
         query: str,
         top_k: Optional[int] = None,
         db: Optional[Session] = None,
+        document_id: Optional[str] = None,
     ) -> List[CandidateChunk]:
         """
         Embed the normalized query, query FAISS, and return candidate chunks.
+        Optionally filter by document_id.
         """
         clean_query = self.normalize_query(query)
 
@@ -55,20 +57,24 @@ class RAGRetriever:
             if not loaded or not self.vector_store.is_built:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Knowledge base has not been built yet. Please build the knowledge base first.",
+                    detail="Knowledge base is not ready. Please process documents and build the knowledge base before asking questions.",
                 )
 
         # Enforce clamped top_k (between 1 and 10)
         req_k = top_k or settings.RAG_TOP_K
         k = max(1, min(req_k, 10))
 
-        logger.info(f"Retrieving top-{k} candidates for query: '{clean_query[:60]}...'")
+        logger.info(f"Retrieving top-{k} candidates for query: '{clean_query[:60]}...' (doc_id={document_id})")
 
         # 1. Generate normalized query embedding
         query_vec = self.embedding_service.embed_text(clean_query)
 
-        # 2. Search FAISS index
-        raw_matches = self.vector_store.search(query_vec, top_k=k)
+        # 2. Search FAISS index with optional document filtering
+        raw_matches = self.vector_store.search(
+            query_vec,
+            top_k=k,
+            document_id=document_id,
+        )
 
         # 3. Map into structured CandidateChunk objects
         candidates: List[CandidateChunk] = []

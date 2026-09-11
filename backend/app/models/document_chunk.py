@@ -38,6 +38,14 @@ class DocumentChunk(Base):
         Integer,
         nullable=True,
     )
+    page_start: Mapped[Optional[int]] = mapped_column(
+        Integer,
+        nullable=True,
+    )
+    page_end: Mapped[Optional[int]] = mapped_column(
+        Integer,
+        nullable=True,
+    )
     section: Mapped[Optional[str]] = mapped_column(
         String(255),
         nullable=True,

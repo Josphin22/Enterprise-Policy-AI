@@ -53,6 +53,31 @@ class RetrievalEvaluator:
             "recall_at_k": {},
         }
 
+        # Calculate Hit Rate, Precision, Recall at each K, and reciprocal rank
+        first_relevant_rank = None
+        reciprocal_rank = 0.0
+
+        for idx, doc_name in enumerate(retrieved_docs_ordered, start=1):
+            if doc_name in expected_docs and first_relevant_rank is None:
+                first_relevant_rank = idx
+                reciprocal_rank = round(1.0 / idx, 4)
+
+        metrics["reciprocal_rank"] = reciprocal_rank
+        metrics["first_relevant_rank"] = first_relevant_rank
+
+        # Optional chunk-level matching
+        expected_chunk = getattr(question, "expected_chunk", None)
+        expected_chunk_idx = getattr(question, "expected_chunk_index", None)
+        chunk_hit = False
+        if expected_chunk or expected_chunk_idx is not None:
+            for c in retrieved_chunks:
+                c_id = getattr(c, "chunk_id", None)
+                c_idx = getattr(c, "chunk_index", None)
+                if (expected_chunk and c_id == expected_chunk) or (expected_chunk_idx is not None and c_idx == expected_chunk_idx):
+                    chunk_hit = True
+                    break
+        metrics["chunk_hit"] = chunk_hit
+
         # Calculate Hit Rate, Precision, and Recall at each K
         for k in k_values:
             top_k_docs = retrieved_docs_ordered[:k]
@@ -89,7 +114,7 @@ class RetrievalEvaluator:
     @staticmethod
     def aggregate_retrieval_metrics(query_eval_results: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
-        Aggregate individual query metrics into dataset-wide precision, recall, hit rate, and accuracy.
+        Aggregate individual query metrics into dataset-wide precision, recall, hit rate, MRR, and accuracy.
         """
         answerable_evals = [r for r in query_eval_results if not r.get("is_unanswerable", False)]
         total_answerable = len(answerable_evals)
@@ -107,6 +132,8 @@ class RetrievalEvaluator:
                 "recall_1": 0.0,
                 "recall_3": 0.0,
                 "recall_5": 0.0,
+                "mrr": 0.0,
+                "mrr_at_5": 0.0,
                 "context_relevance_score": 0.0,
             }
 
@@ -121,6 +148,15 @@ class RetrievalEvaluator:
         r_1 = sum(r["recall_at_k"]["r@1"] for r in answerable_evals) / total_answerable
         r_3 = sum(r["recall_at_k"]["r@3"] for r in answerable_evals) / total_answerable
         r_5 = sum(r["recall_at_k"]["r@5"] for r in answerable_evals) / total_answerable
+
+        # Mean Reciprocal Rank (MRR)
+        mrr = sum(r.get("reciprocal_rank", 0.0) for r in answerable_evals) / total_answerable
+        mrr_5 = sum(
+            r.get("reciprocal_rank", 0.0)
+            if (r.get("first_relevant_rank") and r["first_relevant_rank"] <= 5)
+            else 0.0
+            for r in answerable_evals
+        ) / total_answerable
 
         relevant_count = sum(1 for r in answerable_evals if r["context_relevance"] in ("Relevant", "Partially Relevant"))
         context_relevance_score = relevant_count / total_answerable
@@ -137,6 +173,8 @@ class RetrievalEvaluator:
             "recall_1": round(r_1, 4),
             "recall_3": round(r_3, 4),
             "recall_5": round(r_5, 4),
+            "mrr": round(mrr, 4),
+            "mrr_at_5": round(mrr_5, 4),
             "context_relevance_score": round(context_relevance_score * 100, 2),
         }
 

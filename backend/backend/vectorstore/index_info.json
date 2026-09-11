@@ -1,0 +1,8 @@
+{
+  "index_type": "IndexFlatIP",
+  "metric": "Cosine Similarity (Normalized Inner Product)",
+  "dimension": 384,
+  "vectors": 105,
+  "created_at": "2026-09-11T03:36:10.112985+00:00",
+  "updated_at": "2026-09-11T03:36:10.113353+00:00"
+}

@@ -15,9 +15,10 @@ import {
   Sparkles,
   Tag,
   Hash,
+  Bot,
 } from 'lucide-react';
 import StatusCard from '../components/StatusCard';
-import { getKnowledgeBaseStatus, buildKnowledgeBase, searchKnowledgeBase } from '../services/api';
+import { getKnowledgeBaseStatus, buildKnowledgeBase, searchKnowledgeBase, getOllamaHealth } from '../services/api';
 
 const SAMPLE_QUERIES = [
   'How many annual leave days are allowed?',
@@ -33,10 +34,15 @@ export default function KnowledgeBase() {
     processed_documents: 0,
     chunks: 0,
     vectors: 0,
-    embedding_model: 'all-MiniLM-L6-v2',
+    embedding_model: 'sentence-transformers/all-MiniLM-L6-v2',
     embedding_dimension: 384,
     vector_database: 'FAISS',
     last_built: null,
+  });
+
+  const [ollamaStatus, setOllamaStatus] = useState({
+    available: false,
+    model: 'llama3.2:3b',
   });
 
   const [isLoadingStatus, setIsLoadingStatus] = useState(true);
@@ -53,9 +59,24 @@ export default function KnowledgeBase() {
 
   const fetchStatus = async () => {
     setIsLoadingStatus(true);
-    const res = await getKnowledgeBaseStatus();
-    if (res.success && res.data) {
-      setKbStatus(res.data);
+    const [kbRes, ollamaRes] = await Promise.all([
+      getKnowledgeBaseStatus(),
+      getOllamaHealth(),
+    ]);
+
+    if (kbRes.success && kbRes.data) {
+      setKbStatus(kbRes.data);
+    }
+    if (ollamaRes.success && ollamaRes.data) {
+      setOllamaStatus({
+        available: ollamaRes.data.available,
+        model: ollamaRes.data.model || 'llama3.2:3b',
+      });
+    } else {
+      setOllamaStatus({
+        available: false,
+        model: 'llama3.2:3b',
+      });
     }
     setIsLoadingStatus(false);
   };
@@ -125,7 +146,7 @@ export default function KnowledgeBase() {
     }
   };
 
-  const isReady = kbStatus.status === 'ready' && kbStatus.vectors > 0;
+  const isReady = (kbStatus.status === 'ready' || kbStatus.status === 'active') && kbStatus.vectors > 0;
 
   return (
     <div className="knowledge-page-container">
@@ -173,11 +194,11 @@ export default function KnowledgeBase() {
 
         <StatusCard
           title="Embedding Model"
-          value={kbStatus.embedding_model || "all-MiniLM-L6-v2"}
+          value={kbStatus.embedding_model || "sentence-transformers/all-MiniLM-L6-v2"}
           subtitle={`${kbStatus.embedding_dimension || 384}-dimensional dense vectors`}
           icon={Cpu}
-          badgeText="Local PyTorch"
-          badgeType="info"
+          badgeText={kbStatus.embedding_model ? "Embedding model loaded" : "Embedding model unavailable"}
+          badgeType={kbStatus.embedding_model ? "success" : "danger"}
         />
 
         <StatusCard
@@ -205,6 +226,15 @@ export default function KnowledgeBase() {
           icon={HardDrive}
           badgeText="Persistent Disk"
           badgeType="info"
+        />
+
+        <StatusCard
+          title="Ollama LLM Engine"
+          value={ollamaStatus.available ? "Connected" : "Offline"}
+          subtitle={`Local Inference (${ollamaStatus.model})`}
+          icon={Bot}
+          badgeText={ollamaStatus.available ? "Model Ready" : "Daemon Offline"}
+          badgeType={ollamaStatus.available ? "success" : "danger"}
         />
       </div>
 
@@ -247,8 +277,8 @@ export default function KnowledgeBase() {
           </button>
 
           {kbStatus.processed_documents === 0 && (
-            <span className="kb-disabled-hint">
-              Upload and process documents in the Documents page before building the vector database.
+            <span className="kb-disabled-hint" role="status">
+              Process and index documents before asking questions.
             </span>
           )}
           {isReady && !isBuilding && (

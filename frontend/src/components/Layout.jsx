@@ -9,6 +9,7 @@ const PAGE_TITLES = {
   history: 'Conversation History',
   knowledge: 'Vector Knowledge Base',
   evaluation: 'Model Evaluation & Quality Benchmarks',
+  admin: 'Enterprise Admin Portal',
   settings: 'System & Engine Settings',
 };
 
